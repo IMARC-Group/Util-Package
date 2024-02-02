@@ -5,6 +5,7 @@ import smtplib
 import pandas as pd
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from pathlib import Path
 
 
 smtp_host: str | None = None
@@ -66,7 +67,7 @@ def send_mail(
 
 def touch_excel(
         df: pd.DataFrame,
-        file_path: str,
+        file_path: str | Path,
         sheet_name: str = "Sheet1",
         add_df: pd.DataFrame = None,
 ):
@@ -86,6 +87,8 @@ def touch_excel(
     Raises:
         Exception: When the file is opened by user and is currently being used. Please Close the file
     """
+    if isinstance(file_path, Path):
+        file_path = str(file_path)
 
     if add_df is not None:
         df = pd.concat([df, add_df], ignore_index=True)
