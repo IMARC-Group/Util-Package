@@ -15,6 +15,9 @@ from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 import yaml
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+from openpyxl.styles import Font
 
 
 smtp_host: str | None = None
@@ -186,3 +189,43 @@ def get_config(
             raise ValueError(f"File type {file_type} not supported")
 
     return config
+
+
+def style_excel(path:str, sheet_name: str,  header_color = '3ce81e'):
+    """
+    Styles an Excel file by applying a header color and adjusting column widths.
+
+    Parameters:
+        path (str): The path to the Excel file.
+        header_color (str, optional): The color of the header. Defaults to '3ce81e'.
+
+    Returns:
+        None
+
+    Raises:
+        AttributeError: If a column contains empty cells or is not formatted as expected.
+    """
+    input_workbook = load_workbook(path)
+    input_worksheet = input_workbook[sheet_name]
+
+    for column in input_worksheet.iter_cols():
+        default_length = 10
+        column_letter = column[0].column_letter
+        column[0].fill = PatternFill(
+            fill_type='solid', 
+            start_color=header_color, 
+            end_color=header_color,
+        )
+        column[0].font = Font(bold=True, size=13) 
+
+        try:
+            if len(str(column[0].value)) > default_length:
+                default_length = len(column[0].value)
+
+        except AttributeError as e:
+            print(f'Column contains empty cells or the following column is not formatted as expected: {e}')
+
+        adjusted_width = (default_length +2) * 1.2
+        input_worksheet.column_dimensions[column_letter].width = adjusted_width
+
+    input_workbook.save(path)
