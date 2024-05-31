@@ -15,6 +15,9 @@ from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 import yaml
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+from openpyxl.styles import Font
 
 
 smtp_host: str | None = None
@@ -186,3 +189,48 @@ def get_config(
             raise ValueError(f"File type {file_type} not supported")
 
     return config
+
+
+def style_excel(
+    path:str, 
+    header_color: str = 'D0EFFF', 
+    bold: bool = True,
+    font_size: int = 12
+    ):
+
+    input_workbook = load_workbook(path) # naming convention
+
+    input_worksheet = input_workbook.active
+
+    for column in input_worksheet.iter_cols():
+
+        max_length = 0
+
+        column_letter = column[0].column_letter
+ 
+        column[0].fill = PatternFill(
+            fill_type='solid', 
+            start_color=header_color, 
+            end_color=header_color,
+        )
+
+        font_style = {}
+        if bold:
+            font_style['bold'] = True
+
+        column[0].font = Font(size=font_size, **font_style) 
+        # if bold:
+        #     column[0].font = Font(bold=True) 
+
+        try:
+            if len(str(column[0].value)) > max_length:
+                max_length = len(column[0].value)
+
+        except Exception as e:
+            print(f'Error : {e}')
+
+        adjusted_width = (max_length +2)*1.2
+
+        input_worksheet.column_dimensions[column_letter].width = adjusted_width
+
+    input_workbook.save(path)
