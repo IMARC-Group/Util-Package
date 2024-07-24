@@ -18,6 +18,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Font
+import win32com.client as win32
 
 
 smtp_host: str | None = None
@@ -43,40 +44,55 @@ def send_mail(
         recipients (string): email addresses to send to
     """
 
-    if (
-        smtp_api_key is None
-        and (smtp_username is None
-        and smtp_password is None)
-    ):
-        raise ValueError(
-            "Please provide "
-            "either an smtp_api_key or "
-            "(smtp_username and smtp_password)")
+    try:
+        outlook = win32.Dispatch('outlook.application')
+        
+        for name in recipients:
+            mail = outlook.CreateItem(0)
 
-    for name in recipients:
-        time.sleep(1)
-        mail_from = 'alan.baker@imarcgroup.info'
-        mail_to = str(name)
+            mail.To = str(name)
+            mail.Subject = str(subject)
+            mail.Body = str(message)
 
-        msg = MIMEMultipart()
-        msg['From'] = mail_from
-        msg['To'] = mail_to
-        msg['Subject'] = str(subject)
+            mail.Send()
+            print(f"Email sent successfully to {mail_to} !")
 
-        html_part = MIMEText(str(message), mail_type)
-        msg.attach(html_part)
+    except Exception as e:
 
-        server = smtplib.SMTP_SSL(smtp_host, smtp_port)
-        server.ehlo()
+        if (
+            smtp_api_key is None
+            and (smtp_username is None
+            and smtp_password is None)
+        ):
+            raise ValueError(
+                "Please provide "
+                "either an smtp_api_key or "
+                "(smtp_username and smtp_password)")
 
-        if smtp_api_key:
-            server.login('apikey', smtp_api_key)
-        else:
-            server.login(smtp_username, smtp_password)
+        for name in recipients:
+            time.sleep(1)
+            mail_from = 'alan.baker@imarcgroup.info'
+            mail_to = str(name)
 
-        server.sendmail(mail_from, mail_to, msg.as_string())
-        server.close()
-        print(f"Mail Has Been Sent To {mail_to} with Subject: {subject}")
+            msg = MIMEMultipart()
+            msg['From'] = mail_from
+            msg['To'] = mail_to
+            msg['Subject'] = str(subject)
+
+            html_part = MIMEText(str(message), mail_type)
+            msg.attach(html_part)
+
+            server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+            server.ehlo()
+
+            if smtp_api_key:
+                server.login('apikey', smtp_api_key)
+            else:
+                server.login(smtp_username, smtp_password)
+
+            server.sendmail(mail_from, mail_to, msg.as_string())
+            server.close()
+            print(f"Mail Has Been Sent To {mail_to} with Subject: {subject}")
 
 
 def touch_excel(
