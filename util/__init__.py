@@ -212,18 +212,19 @@ def style_excel(path:str, sheet_name: str,  header_color = '3ce81e'):
         default_length = 10
         column_letter = column[0].column_letter
         column[0].fill = PatternFill(
-            fill_type='solid', 
-            start_color=header_color, 
+            fill_type='solid',
+            start_color=header_color,
             end_color=header_color,
         )
-        column[0].font = Font(bold=True, size=13) 
+        column[0].font = Font(bold=True, size=13)
 
         try:
             if len(str(column[0].value)) > default_length:
                 default_length = len(column[0].value)
 
         except AttributeError as e:
-            print(f'Column contains empty cells or the following column is not formatted as expected: {e}')
+            print('Column contains empty cells or the following column'
+            f' is not formatted as expected: {e}')
 
         adjusted_width = (default_length +2) * 1.2
         input_worksheet.column_dimensions[column_letter].width = adjusted_width
