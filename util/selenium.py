@@ -41,21 +41,9 @@ def _is_driver_present(driver_download_dir, browser: Browser):
     dir_files = os.listdir(driver_download_dir)
 
     for file in dir_files:
-        match browser:
-            case Browser.FIREFOX:
-                if re.search(_driver_name_regex(Browser.FIREFOX), file):
-                    return True
-                return False
-            case Browser.CHROME:
-                if re.search(_driver_name_regex(Browser.CHROME), file):
-                    return True
-                return False
-            case Browser.EDGE:
-                if re.search(_driver_name_regex(Browser.EDGE), file):
-                    return True
-                return False
-            case _:
-                raise ValueError("Unsupported browser")
+        if re.search(_driver_name_regex(browser), file):
+            return True
+    return False
 
 
 def _fix_architecture_info(info: tuple):
@@ -141,10 +129,6 @@ def _download_driver(
                     if file != extracted_filename:
                         src_path = os.path.join(driver_download_dir, file)
                         dst_path = os.path.join(driver_download_dir, extracted_filename)
-                        try:
-                            os.remove(dst_path)
-                        except FileNotFoundError:
-                            pass
                         os.rename(src_path, dst_path)
 
                         first_dir = Path(file).parts[0]
@@ -216,11 +200,24 @@ def init_driver(
                 options.add_argument(user_data_dir)
             if download_dir:
                 options.set_preference("browser.download.folderList", 2)
-                options.set_preference("browser.download.manager.showWhenStarting", False)
                 options.set_preference("browser.download.dir", download_dir)
+                options.set_preference("browser.download.useDownloadDir", True)
+                options.set_preference("browser.download.manager.showWhenStarting", False)
                 options.set_preference(
                     "browser.helperApps.neverAsk.saveToDisk",
-                    "application/x-gzip",
+                    "application/pptx, "
+                    "application/csv, "
+                    "application/ris, "
+                    "text/csv, "
+                    "image/png, "
+                    "application/pdf, "
+                    "text/html, "
+                    "text/plain, "
+                    "application/zip, "
+                    "application/x-zip, "
+                    "application/x-zip-compressed, "
+                    "application/download, "
+                    "application/octet-stream",
                 )
 
         case Browser.CHROME:
@@ -272,5 +269,44 @@ def init_driver(
 # TODO: to be completed
 def get_profile_path(browser: Browser) -> str:
     "returns the path to the profile"
+
     profile_path = None
+
+    platform_info = _fix_architecture_info(platform.architecture())
+
+    match browser:
+        case Browser.FIREFOX:
+            if platform_info[1] == "windows":
+                profiles_dir = os.path.join(
+                    os.path.expanduser("~"),
+                    "AppData",
+                    "Roaming",
+                    "Mozilla",
+                    "Firefox",
+                    "Profiles",
+                )
+                profile_name = None
+                for folder in os.listdir(profiles_dir):
+                    regex_pattern = r"(.*).default-release"
+                    match = re.search(regex_pattern, folder)
+                    if match is not None:
+                        profile_name = folder
+                        break
+                assert profile_name is not None, "No profile found."
+                profile_path = os.path.join(profiles_dir, profile_name)
+
+        case Browser.CHROME:
+            if platform_info[1] == "windows":
+                profile_path = os.path.join(
+                    os.path.expanduser("~"),
+                    "AppData",
+                    "Local",
+                    "Google",
+                    "Chrome",
+                    "User Data",
+                    "Default",
+                )
+
+                assert os.path.exists(profile_path), "No Chrome profile found."
+
     return profile_path

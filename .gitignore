@@ -165,3 +165,6 @@ chromedriver.exe
 
 # driver zips
 *.zip
+
+# test dirs
+/download_test
