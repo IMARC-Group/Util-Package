@@ -18,6 +18,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Font
+import win32com.client as win32
 
 
 smtp_host: str | None = None
@@ -43,47 +44,67 @@ def send_mail(
         recipients (string): email addresses to send to
     """
 
-    if (
-        smtp_api_key is None
-        and (smtp_username is None
-        and smtp_password is None)
-    ):
-        raise ValueError(
-            "Please provide "
-            "either an smtp_api_key or "
-            "(smtp_username and smtp_password)")
+    try:
+        outlook = win32.Dispatch('outlook.application')
 
-    for name in recipients:
-        time.sleep(1)
+        for email in recipients:
+            mail = outlook.CreateItem(0)
+
+            mail.To = str(email)
+            mail.Subject = str(subject)
+            mail.Body = str(message)
+
+            mail.Send()
+            # print(f"Email sent successfully to {email} !")
+
+    except Exception as e:
+
+        print("Failed to send mail via Outlook. Retrying with API...")
+
+        if (
+            smtp_api_key is None
+            and (smtp_username is None
+            and smtp_password is None)
+        ):
+            raise ValueError(
+                "Please provide "
+                "either an smtp_api_key or "
+                "(smtp_username and smtp_password)") from e
+
         mail_from = 'alan.baker@imarcgroup.info'
-        mail_to = str(name)
 
-        msg = MIMEMultipart()
-        msg['From'] = mail_from
-        msg['To'] = mail_to
-        msg['Subject'] = str(subject)
+        for email in recipients:
+            mail_to = str(email)
 
-        html_part = MIMEText(str(message), mail_type)
-        msg.attach(html_part)
+            msg = MIMEMultipart()
+            msg['From'] = mail_from
+            msg['To'] = mail_to
+            msg['Subject'] = str(subject)
 
-        server = smtplib.SMTP_SSL(smtp_host, smtp_port)
-        server.ehlo()
+            html_part = MIMEText(str(message), mail_type)
+            msg.attach(html_part)
 
-        if smtp_api_key:
-            server.login('apikey', smtp_api_key)
-        else:
-            server.login(smtp_username, smtp_password)
+            server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+            server.ehlo()
 
-        server.sendmail(mail_from, mail_to, msg.as_string())
-        server.close()
-        print(f"Mail Has Been Sent To {mail_to} with Subject: {subject}")
+            if smtp_api_key:
+                server.login('apikey', smtp_api_key)
+            else:
+                server.login(smtp_username, smtp_password)
+
+            server.sendmail(mail_from, mail_to, msg.as_string())
+            server.close()
+
+            time.sleep(1)
+
+    print("Mail sent successfully.")
 
 
 def touch_excel(
-        df: pd.DataFrame,
-        file_path: str | Path,
-        sheet_name: str = "Sheet1",
-        add_df: pd.DataFrame = None,
+    df: pd.DataFrame,
+    file_path: str | Path,
+    sheet_name: str = "Sheet1",
+    add_df: pd.DataFrame = None,
 ):
     """this function updates or creates a new sheet with the given dataframe
 
@@ -191,42 +212,53 @@ def get_config(
     return config
 
 
-def style_excel(path:str, sheet_name: str,  header_color = '3ce81e'):
+def style_excel(
+    path:str,
+    header_color: str = 'D0EFFF',
+    bold: bool = True,
+    font_size: int = None,
+):
     """
-    Styles an Excel file by applying a header color and adjusting column widths.
+    Applies a header color, font size, and bold style to the first row of an Excel file.
 
-    Parameters:
+    Args:
         path (str): The path to the Excel file.
-        header_color (str, optional): The color of the header. Defaults to '3ce81e'.
-
-    Returns:
-        None
-
-    Raises:
-        AttributeError: If a column contains empty cells or is not formatted as expected.
+        header_color (str, optional): The color to use for the header. Defaults to 'D0EFFF'.
+        bold (bool, optional): Whether to apply bold style. Defaults to True.
+        font_size (int, optional): The font size to use. Defaults to 12.
     """
+
     input_workbook = load_workbook(path)
-    input_worksheet = input_workbook[sheet_name]
+
+    input_worksheet = input_workbook.active
 
     for column in input_worksheet.iter_cols():
-        default_length = 10
+
+        col_width = 0
+
         column_letter = column[0].column_letter
+
         column[0].fill = PatternFill(
             fill_type='solid',
             start_color=header_color,
             end_color=header_color,
         )
-        column[0].font = Font(bold=True, size=13)
 
-        try:
-            if len(str(column[0].value)) > default_length:
-                default_length = len(column[0].value)
+        font_style = {}
 
-        except AttributeError as e:
-            print('Column contains empty cells or the following column'
-            f' is not formatted as expected: {e}')
+        if bold:
+            font_style['bold'] = True
 
-        adjusted_width = (default_length +2) * 1.2
+        if font_size:
+            font_style['size'] = font_size
+
+        column[0].font = Font(**font_style)
+
+        if len(str(column[0].value)) > col_width:
+            col_width = len(column[0].value)
+
+        adjusted_width = (col_width + 2) *  1.2
+
         input_worksheet.column_dimensions[column_letter].width = adjusted_width
 
     input_workbook.save(path)

@@ -1,4 +1,6 @@
 pandas
 pyyaml
 openpyxl
-requests
+html5lib
+lxml
+pywin32
