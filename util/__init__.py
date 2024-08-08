@@ -52,14 +52,18 @@ def send_mail(
 
             mail.To = str(email)
             mail.Subject = str(subject)
-            mail.Body = str(message)
+            if mail_type == "plain":
+                mail.Body = str(message)
+            elif mail_type == "html":
+                mail.HTMLBody = str(message)
+            else:
+                raise ValueError("Invalid mail type. Choose 'plain' or 'html'.")
 
             mail.Send()
-            # print(f"Email sent successfully to {email} !")
 
     except Exception as e:
 
-        print("Failed to send mail via Outlook. Retrying with API...")
+        print("ERROR: Failed to send mail via Outlook. Retrying with API...")
 
         if (
             smtp_api_key is None
@@ -67,8 +71,7 @@ def send_mail(
             and smtp_password is None)
         ):
             raise ValueError(
-                "Please provide "
-                "either an smtp_api_key or "
+                "Please provide either an smtp_api_key or "
                 "(smtp_username and smtp_password)") from e
 
         mail_from = 'alan.baker@imarcgroup.info'
@@ -77,6 +80,7 @@ def send_mail(
             mail_to = str(email)
 
             msg = MIMEMultipart()
+
             msg['From'] = mail_from
             msg['To'] = mail_to
             msg['Subject'] = str(subject)

@@ -37,10 +37,21 @@ def test_driver_download_dir_firefox():
         browser=sel.Browser.FIREFOX,
         download_dir=download_dir)
 
-    driver.get("https://library.lol/main/D37C047171EEEF2279D7DC99E9FBF46F")
-    driver.find_element(By.XPATH, '//*[@id="download"]/h2[1]/a').click()
-    time.sleep(30)
-    driver.quit()
+    try:
+        url = "https://imarcservices-my.sharepoint.com/:t:/g/personal/vinay_sagar_imarc_in/EacNp-kyR6hIhiXAbN9CC5IBj0tHaFMLmUPWC1E1JHGbVg?e=I9XfLU"
+        driver.get(url)
+        driver.find_element(By.XPATH, '//*[@id="downloadCommand"]').click()
+
+        wait_limit = 60
+        while len(os.listdir(download_dir)) == 0:
+            time.sleep(1)
+            wait_limit = wait_limit - 1
+            if wait_limit <= 0:
+                break
+    except Exception:
+        pass
+    finally:
+        driver.quit()
 
     files = os.listdir(download_dir)
     shutil.rmtree(download_dir)
@@ -55,12 +66,22 @@ def test_download_dir_chrome():
     driver = sel.init_driver(
         browser=sel.Browser.CHROME,
         download_dir=download_dir)
+    try:
+        url = "https://imarcservices-my.sharepoint.com/:t:/g/personal/vinay_sagar_imarc_in/EacNp-kyR6hIhiXAbN9CC5IBj0tHaFMLmUPWC1E1JHGbVg?e=I9XfLU"
+        driver.get(url)
+        driver.find_element(By.XPATH, '//*[@id="downloadCommand"]').click()
 
-    driver.get("https://library.lol/main/D37C047171EEEF2279D7DC99E9FBF46F")
-    driver.find_element(By.XPATH, '//*[@id="download"]/h2[1]/a').click()
+        wait_limit = 60
+        while len(os.listdir(download_dir)) == 0:
+            time.sleep(1)
+            wait_limit = wait_limit - 1
+            if wait_limit <= 0:
+                break
 
-    time.sleep(30)
-    driver.quit()
+    except Exception:
+        pass
+    finally:
+        driver.quit()
 
     files = os.listdir(download_dir)
     shutil.rmtree(download_dir)
@@ -77,6 +98,7 @@ def test_user_dir_firefox():
     driver = sel.init_driver(sel.Browser.FIREFOX, user_data_dir=user_dir)
     print(driver.capabilities)
     assert driver.capabilities["moz:profile"] == user_dir, "profile path not set"
+    driver.quit()
 
 
 def test_init_driver_chrome():
@@ -88,6 +110,7 @@ def test_init_driver_chrome():
 def test_init_driver_edge():
     try:
         driver = sel.init_driver(browser=sel.Browser.EDGE)
+        driver.quit()
     except Exception as e:
         assert isinstance(e, NotImplementedError), "No driver generated for Edge browser."
 
@@ -111,3 +134,29 @@ def get_profile_chrome():
     path = sel.get_profile_path(sel.Browser.CHROME)
     assert path is not None, "profile_firefox not found."
     print(path)
+
+
+def profile_path_working_firefox():
+    url = "https://books.zoho.com/app/653945843#/timesheet/projects/957216000012513009"
+    profile_path = sel.get_profile_path(sel.Browser.FIREFOX)
+    driver = sel.init_driver(
+        browser=sel.Browser.FIREFOX,
+        user_data_dir=profile_path,
+    )
+    driver.get(url)
+    title = driver.title
+    driver.quit()
+    assert "Timesheet" in title, "Page title does not match expected."
+
+
+def profile_path_working_chrome():
+    url = "https://books.zoho.com/app/653945843#/timesheet/projects/957216000012513009"
+    profile_path = sel.get_profile_path(sel.Browser.CHROME)
+    driver = sel.init_driver(
+        browser=sel.Browser.CHROME,
+        user_data_dir=profile_path,
+    )
+    driver.get(url)
+    title = driver.title
+    driver.quit()
+    assert "Timesheet" in title, "Page title does not match expected."

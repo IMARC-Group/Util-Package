@@ -152,8 +152,6 @@ def _verify_driver(driver_download_dir: str | os.PathLike, browser: Browser):
         _download_driver(driver_download_dir, browser)
 
 
-
-
 def init_driver(
     browser: Browser = Browser.FIREFOX,
     driver_download_dir: str = None,
@@ -263,6 +261,8 @@ def init_driver(
             driver = Chrome(service=service, options=options)
 
     assert driver is not None, "No webdriver generated."
+
+    driver.maximize_window()
 
     return driver
 
