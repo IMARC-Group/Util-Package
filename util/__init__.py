@@ -176,7 +176,7 @@ def get_config(
     Args:
         file_name (str): The name of the file from which to load configurations.
         is_global (bool, optional): Flag to determine the location from which
-            to load the configurations. If True, the configuration is loaded
+            to load the configfurations. If True, the configuration is loaded
             from the user's home directory. Otherwise, it's loaded from the
             current working directory. Defaults to False.
         file_type (str, optional): The type of the file to read from. Can be

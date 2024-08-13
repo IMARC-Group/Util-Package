@@ -12,6 +12,8 @@ import util
 
 # How to use send_mail function
 
+The first attempt is to send the mail via outlook if that fails then the API can be used.
+
 
 ~~~
 import util
