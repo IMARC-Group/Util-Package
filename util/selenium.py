@@ -192,7 +192,7 @@ def init_driver(
 
             options = Options()
             if headless:
-                options.headless = True
+                options.add_argument("--headless")
             if user_data_dir:
                 options.add_argument("-profile")
                 options.add_argument(user_data_dir)
