@@ -304,7 +304,7 @@ def get_profile_path(browser: Browser) -> str:
                     "Google",
                     "Chrome",
                     "User Data",
-                    "Default",
+                    # "Default", # hot fix for loading default profile
                 )
 
                 assert os.path.exists(profile_path), "No Chrome profile found."
