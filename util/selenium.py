@@ -2,6 +2,7 @@
 
 import os
 import re
+import time
 import shutil
 import platform
 from enum import Enum
@@ -105,7 +106,7 @@ def _download_driver(
 
     driver_url = driver_urls[platform_info]["url"]
     response = requests.get(driver_url, timeout=60)
-
+    time.sleep(3)
     filename = os.path.basename(driver_url)
 
     if driver_urls[platform_info]["is_zip"]:
