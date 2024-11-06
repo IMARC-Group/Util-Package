@@ -168,3 +168,4 @@ chromedriver.exe
 
 # test dirs
 /download_test
+/tests

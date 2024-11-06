@@ -16,8 +16,7 @@ from pathlib import Path
 import yaml
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill
-from openpyxl.styles import Font
+from openpyxl.styles import PatternFill, Font, Side, Border
 import win32com.client as win32
 
 
@@ -57,7 +56,8 @@ def send_mail(
             elif mail_type == "html":
                 mail.HTMLBody = str(message)
             else:
-                raise ValueError("Invalid mail type. Choose 'plain' or 'html'.")
+                raise ValueError(
+                    "Invalid mail type. Choose 'plain' or 'html'.")
 
             mail.Send()
 
@@ -68,7 +68,7 @@ def send_mail(
         if (
             smtp_api_key is None
             and (smtp_username is None
-            and smtp_password is None)
+                 and smtp_password is None)
         ):
             raise ValueError(
                 "Please provide either an smtp_api_key or "
@@ -193,7 +193,8 @@ def get_config(
         ValueError: If the file_type is neither 'json' nor 'yaml'.
     """
     if is_global:
-        base_path = os.path.join(os.path.expanduser('~'), "Project Configurations")
+        base_path = os.path.join(
+            os.path.expanduser('~'), "Project Configurations")
     else:
         base_path = os.getcwd()
 
@@ -217,7 +218,8 @@ def get_config(
 
 
 def style_excel(
-    path:str,
+    path: str,
+    sheet_name: str | list[str] = None,
     header_color: str = 'D0EFFF',
     bold: bool = True,
     font_size: int = None,
@@ -234,35 +236,63 @@ def style_excel(
 
     input_workbook = load_workbook(path)
 
-    input_worksheet = input_workbook.active
+    sheet_names = [sheet_name] if isinstance(sheet_name, str) else sheet_name
+    
+    sheet_names = [input_workbook.active.title] if not sheet_name else sheet_names
+    
+    invalid_sheets = []
+    
+    # Define border style
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    for sheet in sheet_names:
+                
+        if sheet not in input_workbook.sheetnames:
+                      
+            invalid_sheets.append(sheet)  
+                      
+            continue
+        
+        input_worksheet = input_workbook[sheet]
 
-    for column in input_worksheet.iter_cols():
+        for column in input_worksheet.iter_cols():
 
-        col_width = 0
+            col_width = 0
 
-        column_letter = column[0].column_letter
+            column_letter = column[0].column_letter
 
-        column[0].fill = PatternFill(
-            fill_type='solid',
-            start_color=header_color,
-            end_color=header_color,
-        )
+            column[0].fill = PatternFill(
+                fill_type='solid',
+                start_color=header_color,
+                end_color=header_color,
+            )
 
-        font_style = {}
+            font_style = {}
 
-        if bold:
-            font_style['bold'] = True
+            if bold:
+                font_style['bold'] = True
 
-        if font_size:
-            font_style['size'] = font_size
+            if font_size:
+                font_style['size'] = font_size
 
-        column[0].font = Font(**font_style)
+            column[0].font = Font(**font_style)
+            
+            column[0].border = thin_border
 
-        if len(str(column[0].value)) > col_width:
-            col_width = len(column[0].value)
+            if len(str(column[0].value)) > col_width:
+                col_width = len(column[0].value)
 
-        adjusted_width = (col_width + 2) *  1.2
+            adjusted_width = (col_width + 2) * 1.2
 
-        input_worksheet.column_dimensions[column_letter].width = adjusted_width
-
+            input_worksheet.column_dimensions[column_letter].width = adjusted_width
+            
     input_workbook.save(path)
+    
+    if invalid_sheets:
+        raise KeyError(f"Sheets not found in the workbook: {', '.join(invalid_sheets)}")
+
