@@ -233,12 +233,12 @@ def style_excel(
         bold (bool, optional): Whether to apply bold style. Defaults to True.
         font_size (int, optional): The font size to use. Defaults to 12.
     """
-    input_workbook = load_workbook(path)
+    workbook = load_workbook(path)
 
     sheets = sheet_name
 
     if not sheet_name:
-        sheets = [input_workbook.active.title]
+        sheets = [workbook.active.title]
 
     if isinstance(sheet_name, str):
         sheets = [sheet_name]
@@ -255,11 +255,10 @@ def style_excel(
 
     for sheet in sheets:
 
-        if sheet not in input_workbook.sheetnames:
-            invalid_sheets.append(sheet)
-            continue
+        if sheet not in workbook.sheetnames:
+            raise ValueError(f"Could not find sheet '{sheet}' in workbook")
 
-        input_worksheet = input_workbook[sheet]
+        input_worksheet = workbook[sheet]
 
         for column in input_worksheet.iter_cols():
 
@@ -292,7 +291,4 @@ def style_excel(
 
             input_worksheet.column_dimensions[column_letter].width = adjusted_width
 
-    input_workbook.save(path)
-
-    if invalid_sheets:
-        raise KeyError(f"Sheets not found in the workbook: {', '.join(invalid_sheets)}")
+    workbook.save(path)
