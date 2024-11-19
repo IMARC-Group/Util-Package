@@ -267,7 +267,6 @@ def init_driver(
 
     return driver
 
-# TODO: to be completed
 def get_profile_path(browser: Browser) -> str:
     "returns the path to the profile"
 
