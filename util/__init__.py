@@ -263,7 +263,7 @@ def style_excel(
 
         for column in input_worksheet.iter_cols():
 
-            col_width = 0
+            col_width = 5
 
             column_letter = column[0].column_letter
 
