@@ -11,10 +11,10 @@ def test_email_send_outlook():
 
 
 def test_email_send_api():
-    util.smtp_host = "fill value"
-    util.smtp_port = "fill value"
-    util.smtp_username = "fill value"
-    util.smtp_password = "fill value"
+    # util.smtp_host = "fill value"
+    # util.smtp_port = "fill value"
+    # util.smtp_username = "fill value"
+    # util.smtp_password = "fill value"
     recipients = ["vinay.sagar@imarc.in"]
     subject = "Pytest Test Plain Email"
     message = "This is a plain test email."

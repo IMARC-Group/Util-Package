@@ -27,6 +27,7 @@ smtp_port: int | None = None
 smtp_username: str | None = None
 smtp_password: str | None = None
 smtp_api_key: str | None = None
+smtp_from: str = 'alan.baker@imarcgroup.info'
 
 
 class EmailMode(Enum):
@@ -79,7 +80,7 @@ def _api_mailing(
             "Please provide either an smtp_api_key or "
             "(smtp_username and smtp_password)")
 
-    mail_from = 'alan.baker@imarcgroup.info'
+    mail_from = smtp_from
 
     for email in recipients:
         mail_to = str(email)
