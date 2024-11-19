@@ -13,11 +13,13 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
+from enum import Enum
 import yaml
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font, Side, Border
 import win32com.client as win32
+import warnings
 
 
 smtp_host: str | None = None
@@ -27,11 +29,91 @@ smtp_password: str | None = None
 smtp_api_key: str | None = None
 
 
+class EmailMode(Enum):
+    """Enum for email modes."""
+    OUTLOOK="outlook"
+    API="api"
+
+
+# TODO: add attachment functionality
+def _outlook_mailing(
+        subject: str,
+        message: str,
+        recipients: list[str],
+        mail_type: str = "plain",
+        attachments: list[str] = [],
+):
+
+    outlook = win32.Dispatch('outlook.application')
+
+    for email in recipients:
+        mail = outlook.CreateItem(0)
+
+        mail.To = str(email)
+        mail.Subject = str(subject)
+        if mail_type == "plain":
+            mail.Body = str(message)
+        elif mail_type == "html":
+            mail.HTMLBody = str(message)
+        else:
+            raise ValueError(
+                "Invalid mail type. Choose 'plain' or 'html'.")
+
+        mail.Send()
+
+
+# TODO: add attachment functionality
+def _api_mailing(
+        subject: str,
+        message: str,
+        recipients: list[str],
+        mail_type: str = "plain",
+        attachments: list[str] = [],
+):
+    if (
+        smtp_api_key is None
+        and (smtp_username is None
+                and smtp_password is None)
+    ):
+        raise ValueError(
+            "Please provide either an smtp_api_key or "
+            "(smtp_username and smtp_password)")
+
+    mail_from = 'alan.baker@imarcgroup.info'
+
+    for email in recipients:
+        mail_to = str(email)
+
+        msg = MIMEMultipart()
+
+        msg['From'] = mail_from
+        msg['To'] = mail_to
+        msg['Subject'] = str(subject)
+
+        html_part = MIMEText(str(message), mail_type)
+        msg.attach(html_part)
+
+        server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+        server.ehlo()
+
+        if smtp_api_key:
+            server.login('apikey', smtp_api_key)
+        else:
+            server.login(smtp_username, smtp_password)
+
+        server.sendmail(mail_from, mail_to, msg.as_string())
+        server.close()
+
+        time.sleep(1)
+
+
 def send_mail(
         subject: str,
         message: str,
         recipients: list[str],
-        mail_type: str = "plain"
+        mail_type: str = "plain",
+        attachments: list[str] = [],
+        mode: EmailMode | list[EmailMode] = [EmailMode.OUTLOOK, EmailMode.API],
 ):
     """sends mail
 
@@ -43,65 +125,42 @@ def send_mail(
         recipients (string): email addresses to send to
     """
 
-    try:
-        outlook = win32.Dispatch('outlook.application')
+    if mode == EmailMode.OUTLOOK:
+        _outlook_mailing(
+            subject = subject,
+            message = message,
+            recipients = recipients,
+            mail_type = mail_type,
+            attachments = attachments,
+        )
 
-        for email in recipients:
-            mail = outlook.CreateItem(0)
+    elif mode == EmailMode.API:
+        _api_mailing(
+            subject = subject,
+            message = message,
+            recipients = recipients,
+            mail_type = mail_type,
+            attachments = attachments,
+        )
 
-            mail.To = str(email)
-            mail.Subject = str(subject)
-            if mail_type == "plain":
-                mail.Body = str(message)
-            elif mail_type == "html":
-                mail.HTMLBody = str(message)
-            else:
-                raise ValueError(
-                    "Invalid mail type. Choose 'plain' or 'html'.")
+    elif isinstance(mode, list):
+        for mode_ in mode:
+            try:
+                send_mail(
+                    subject = subject,
+                    message = message,
+                    recipients = recipients,
+                    mail_type = mail_type,
+                    attachments = attachments,
+                    mode = mode_,
+                )
+                break
 
-            mail.Send()
+            except Exception:
+                warnings.warn("Failed to send mail via '{mode_}' mode.")
 
-    except Exception as e:
-
-        print("ERROR: Failed to send mail via Outlook. Retrying with API...")
-
-        if (
-            smtp_api_key is None
-            and (smtp_username is None
-                 and smtp_password is None)
-        ):
-            raise ValueError(
-                "Please provide either an smtp_api_key or "
-                "(smtp_username and smtp_password)") from e
-
-        mail_from = 'alan.baker@imarcgroup.info'
-
-        for email in recipients:
-            mail_to = str(email)
-
-            msg = MIMEMultipart()
-
-            msg['From'] = mail_from
-            msg['To'] = mail_to
-            msg['Subject'] = str(subject)
-
-            html_part = MIMEText(str(message), mail_type)
-            msg.attach(html_part)
-
-            server = smtplib.SMTP_SSL(smtp_host, smtp_port)
-            server.ehlo()
-
-            if smtp_api_key:
-                server.login('apikey', smtp_api_key)
-            else:
-                server.login(smtp_username, smtp_password)
-
-            server.sendmail(mail_from, mail_to, msg.as_string())
-            server.close()
-
-            time.sleep(1)
-
-    print("Mail sent successfully.")
+    else:
+        raise ValueError("Invalid email mode. Choose 'outlook' or 'api'.")
 
 
 def touch_excel(
@@ -242,8 +301,6 @@ def style_excel(
 
     if isinstance(sheet_name, str):
         sheets = [sheet_name]
-
-    invalid_sheets = []
 
     # Define border style
     thin_border = Border(
