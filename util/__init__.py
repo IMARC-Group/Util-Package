@@ -233,15 +233,18 @@ def style_excel(
         bold (bool, optional): Whether to apply bold style. Defaults to True.
         font_size (int, optional): The font size to use. Defaults to 12.
     """
-
     input_workbook = load_workbook(path)
 
-    sheet_names = [sheet_name] if isinstance(sheet_name, str) else sheet_name
-    
-    sheet_names = [input_workbook.active.title] if not sheet_name else sheet_names
-    
+    sheets = sheet_name
+
+    if not sheet_name:
+        sheets = [input_workbook.active.title]
+
+    if isinstance(sheet_name, str):
+        sheets = [sheet_name]
+
     invalid_sheets = []
-    
+
     # Define border style
     thin_border = Border(
         left=Side(style='thin'),
@@ -249,15 +252,13 @@ def style_excel(
         top=Side(style='thin'),
         bottom=Side(style='thin')
     )
-    
-    for sheet in sheet_names:
-                
+
+    for sheet in sheets:
+
         if sheet not in input_workbook.sheetnames:
-                      
-            invalid_sheets.append(sheet)  
-                      
+            invalid_sheets.append(sheet)
             continue
-        
+
         input_worksheet = input_workbook[sheet]
 
         for column in input_worksheet.iter_cols():
@@ -281,7 +282,7 @@ def style_excel(
                 font_style['size'] = font_size
 
             column[0].font = Font(**font_style)
-            
+
             column[0].border = thin_border
 
             if len(str(column[0].value)) > col_width:
@@ -290,9 +291,8 @@ def style_excel(
             adjusted_width = (col_width + 2) * 1.2
 
             input_worksheet.column_dimensions[column_letter].width = adjusted_width
-            
+
     input_workbook.save(path)
-    
+
     if invalid_sheets:
         raise KeyError(f"Sheets not found in the workbook: {', '.join(invalid_sheets)}")
-
