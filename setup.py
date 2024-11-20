@@ -6,14 +6,20 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
+from pathlib import Path
 from setuptools import setup, find_packages
-import pathlib
 
-here = pathlib.Path(__file__).parent.resolve()
+
+here = Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 long_description = (here / "README.md").read_text(encoding="utf-8")
-requirements = [requirement for requirement in open('requirements.txt', 'r').readlines() if requirement.strip() != '']
+with open('requirements.txt', 'r', encoding="utf-8") as f:
+    requirements = [
+        requirement
+        for requirement in f.readlines()
+        if requirement.strip() != ''
+    ]
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -37,7 +43,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/guides/single-sourcing-package-version/
-    version="0.2.2",  # Required
+    version="1.0.0",  # Required
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary

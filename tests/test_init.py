@@ -4,25 +4,27 @@ import os
 
 
 def test_email_send_outlook():
-    recipients = ["vinay.sagar@imarc.in"]
+    recipients = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+    # recipients = ["vinay.sagar@imarc.in"]
     subject = "Pytest Test Plain Email"
     message = "This is a plain test email."
     util.send_mail(subject, message, recipients, mode=util.EmailMode.OUTLOOK)
 
 
-def test_email_send_api():
-    util.smtp_host = os.environ["SMTP_HOST"]
-    util.smtp_port = os.environ["SMTP_PORT"]
-    util.smtp_username = os.environ["SMTP_USERNAME"]
-    util.smtp_password = os.environ["SMTP_PASSWORD"]
-    recipients = ["vinay.sagar@imarc.in"]
-    subject = "Pytest Test Plain Email"
-    message = "This is a plain test email."
-    util.send_mail(subject, message, recipients, mode=util.EmailMode.API)
+# def test_email_send_api():
+#     util.smtp_host = os.environ["SMTP_HOST"]
+#     util.smtp_port = os.environ["SMTP_PORT"]
+#     util.smtp_username = os.environ["SMTP_USERNAME"]
+#     util.smtp_password = os.environ["SMTP_PASSWORD"]
+#     recipients = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+#     subject = "Pytest Test Plain Email"
+#     message = "This is a plain test email."
+#     util.send_mail(subject, message, recipients, mode=util.EmailMode.API)
 
 
 def test_email_type_html():
-    recipients = ["vinay.sagar@imarc.in"]
+    # recipients = ["vinay.sagar@imarc.in"]
+    recipients = ["vinay.sagar@imarc.in", "forms@imarc.in"]
     subject = "Pytest Test HTML Email"
     message = "<h1>HTML test email.</h1><p>This is a test email</p>"
     util.send_mail(subject, message, recipients, "html", mode=util.EmailMode.OUTLOOK)

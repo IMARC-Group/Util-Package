@@ -10,16 +10,18 @@ import os
 import time
 import json
 import smtplib
+import warnings
+from enum import Enum
+from pathlib import Path
+from email.utils import COMMASPACE
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from pathlib import Path
-from enum import Enum
+from email.mime.application import MIMEApplication
 import yaml
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font, Side, Border
 import win32com.client as win32
-import warnings
 
 
 smtp_host: str | None = None
@@ -42,25 +44,30 @@ def _outlook_mailing(
         message: str,
         recipients: list[str],
         mail_type: str = "plain",
-        attachments: list[str] = [],
+        attachments: list[str] = None,
 ):
 
     outlook = win32.Dispatch('outlook.application')
 
-    for email in recipients:
-        mail = outlook.CreateItem(0)
+    # for email in recipients:
+    mail = outlook.CreateItem(0)
 
-        mail.To = str(email)
-        mail.Subject = str(subject)
-        if mail_type == "plain":
-            mail.Body = str(message)
-        elif mail_type == "html":
-            mail.HTMLBody = str(message)
-        else:
-            raise ValueError(
-                "Invalid mail type. Choose 'plain' or 'html'.")
+    # mail.To = str(email)
+    mail.To = ";".join(recipients)
+    mail.Subject = str(subject)
 
-        mail.Send()
+    if attachments:
+        mail.attachments = attachments
+
+    if mail_type == "plain":
+        mail.Body = str(message)
+    elif mail_type == "html":
+        mail.HTMLBody = str(message)
+    else:
+        raise ValueError(
+            "Invalid mail type. Choose 'plain' or 'html'.")
+
+    mail.Send()
 
 
 # TODO: add attachment functionality
@@ -69,7 +76,7 @@ def _api_mailing(
         message: str,
         recipients: list[str],
         mail_type: str = "plain",
-        attachments: list[str] = [],
+        attachments: list[str] = None,
 ):
     if (
         smtp_api_key is None
@@ -82,30 +89,41 @@ def _api_mailing(
 
     mail_from = smtp_from
 
-    for email in recipients:
-        mail_to = str(email)
+    # for email in recipients:
+    # mail_to = str(email)
 
-        msg = MIMEMultipart()
+    msg = MIMEMultipart()
 
-        msg['From'] = mail_from
-        msg['To'] = mail_to
-        msg['Subject'] = str(subject)
+    msg['From'] = mail_from
+    msg['To'] = COMMASPACE.join(recipients)
+    msg['Subject'] = str(subject)
 
-        html_part = MIMEText(str(message), mail_type)
-        msg.attach(html_part)
+    html_part = MIMEText(str(message), mail_type)
+    msg.attach(html_part)
 
-        server = smtplib.SMTP_SSL(smtp_host, smtp_port)
-        server.ehlo()
+    for file_path in attachments or []:
+        with open(file_path, "rb") as file:
+            part = MIMEApplication(
+                file.read(),
+                Name=os.path.basename(file_path)
+            )
+        # After the file is closed
+        part['Content-Disposition'] = 'attachment; '\
+            f'filename="{os.path.basename(file_path)}"'
+        msg.attach(part)
 
-        if smtp_api_key:
-            server.login('apikey', smtp_api_key)
-        else:
-            server.login(smtp_username, smtp_password)
+    server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+    server.ehlo()
 
-        server.sendmail(mail_from, mail_to, msg.as_string())
-        server.close()
+    if smtp_api_key:
+        server.login('apikey', smtp_api_key)
+    else:
+        server.login(smtp_username, smtp_password)
 
-        time.sleep(1)
+    server.sendmail(mail_from, recipients, msg.as_string())
+    server.close()
+
+    time.sleep(1)
 
 
 def send_mail(
@@ -113,7 +131,7 @@ def send_mail(
         message: str,
         recipients: list[str],
         mail_type: str = "plain",
-        attachments: list[str] = [],
+        attachments: list[str] = None,
         mode: EmailMode | list[EmailMode] = [EmailMode.OUTLOOK, EmailMode.API],
 ):
     """sends mail
