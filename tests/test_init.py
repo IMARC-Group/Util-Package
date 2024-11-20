@@ -8,7 +8,16 @@ def test_email_send_outlook():
     # recipients = ["vinay.sagar@imarc.in"]
     subject = "Pytest Test Plain Email"
     message = "This is a plain test email."
-    util.send_mail(subject, message, recipients, mode=util.EmailMode.OUTLOOK)
+    cc = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+    bcc = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+    util.send_mail(
+        subject,
+        message,
+        recipients,
+        mode=util.EmailMode.OUTLOOK,
+        cc=cc,
+        bcc=bcc,
+    )
 
 
 # def test_email_send_api():
@@ -27,7 +36,17 @@ def test_email_type_html():
     recipients = ["vinay.sagar@imarc.in", "forms@imarc.in"]
     subject = "Pytest Test HTML Email"
     message = "<h1>HTML test email.</h1><p>This is a test email</p>"
-    util.send_mail(subject, message, recipients, "html", mode=util.EmailMode.OUTLOOK)
+    cc = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+    bcc = ["vinay.sagar@imarc.in", "forms@imarc.in"]
+    util.send_mail(
+        subject,
+        message,
+        recipients,
+        mode=util.EmailMode.OUTLOOK,
+        mail_type="html",
+        cc=cc,
+        bcc=bcc,
+    )
 
 
 def test_style_excel_invalid_sheet():

@@ -45,6 +45,8 @@ def _outlook_mailing(
         recipients: list[str],
         mail_type: str = "plain",
         attachments: list[str] = None,
+        cc: list[str] = None,
+        bcc: list[str] = None,
 ):
 
     outlook = win32.Dispatch('outlook.application')
@@ -54,6 +56,12 @@ def _outlook_mailing(
 
     # mail.To = str(email)
     mail.To = ";".join(recipients)
+    if cc:
+        mail.CC = ";".join(cc)
+
+    if bcc:
+        mail.BCC = ";".join(bcc)
+
     mail.Subject = str(subject)
 
     if attachments:
@@ -77,6 +85,8 @@ def _api_mailing(
         recipients: list[str],
         mail_type: str = "plain",
         attachments: list[str] = None,
+        cc: list[str] = None,
+        bcc: list[str] = None,
 ):
     if (
         smtp_api_key is None
@@ -96,6 +106,13 @@ def _api_mailing(
 
     msg['From'] = mail_from
     msg['To'] = COMMASPACE.join(recipients)
+
+    if cc:
+        msg['Cc'] = COMMASPACE.join(cc)
+
+    if bcc:
+        msg['Bcc'] = COMMASPACE.join(bcc)
+
     msg['Subject'] = str(subject)
 
     html_part = MIMEText(str(message), mail_type)
@@ -133,6 +150,8 @@ def send_mail(
         mail_type: str = "plain",
         attachments: list[str] = None,
         mode: EmailMode | list[EmailMode] = [EmailMode.OUTLOOK, EmailMode.API],
+        cc: list[str] = None,
+        bcc: list[str] = None,
 ):
     """sends mail
 
@@ -151,6 +170,8 @@ def send_mail(
             recipients = recipients,
             mail_type = mail_type,
             attachments = attachments,
+            cc = cc,
+            bcc = bcc,
         )
 
     elif mode == EmailMode.API:
@@ -160,6 +181,8 @@ def send_mail(
             recipients = recipients,
             mail_type = mail_type,
             attachments = attachments,
+            cc = cc,
+            bcc = bcc,
         )
 
     elif isinstance(mode, list):
@@ -172,6 +195,8 @@ def send_mail(
                     mail_type = mail_type,
                     attachments = attachments,
                     mode = mode_,
+                    cc = cc,
+                    bcc = bcc,
                 )
                 break
 
