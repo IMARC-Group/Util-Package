@@ -24,6 +24,9 @@ from openpyxl.styles import PatternFill, Font, Side, Border
 import win32com.client as win32
 
 
+# pylint: disable=R0913
+
+
 smtp_host: str | None = None
 smtp_port: int | None = None
 smtp_username: str | None = None
@@ -38,7 +41,6 @@ class EmailMode(Enum):
     API="api"
 
 
-# TODO: add attachment functionality
 def _outlook_mailing(
         subject: str,
         message: str,
@@ -78,7 +80,6 @@ def _outlook_mailing(
     mail.Send()
 
 
-# TODO: add attachment functionality
 def _api_mailing(
         subject: str,
         message: str,
@@ -149,7 +150,7 @@ def send_mail(
         recipients: list[str],
         mail_type: str = "plain",
         attachments: list[str] = None,
-        mode: EmailMode | list[EmailMode] = [EmailMode.OUTLOOK, EmailMode.API],
+        mode: EmailMode | list[EmailMode] = None,
         cc: list[str] = None,
         bcc: list[str] = None,
 ):
@@ -162,6 +163,8 @@ def send_mail(
         message (str): message to send
         recipients (string): email addresses to send to
     """
+    if not mode:
+        mode = [EmailMode.OUTLOOK, EmailMode.API]
 
     if mode == EmailMode.OUTLOOK:
         _outlook_mailing(
@@ -200,6 +203,7 @@ def send_mail(
                 )
                 break
 
+            # pylint: disable-next=W0718
             except Exception:
                 warnings.warn("Failed to send mail via '{mode_}' mode.")
 
