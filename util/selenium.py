@@ -8,6 +8,7 @@ import platform
 from enum import Enum
 from zipfile import ZipFile
 from pathlib import Path
+from warnings import warn
 import requests
 
 # Selenium install check
@@ -37,9 +38,9 @@ def _driver_name_regex(browser: Browser):
             raise ValueError("Unsupported browser")
 
 
-def _is_driver_present(driver_download_dir, browser: Browser):
+def _is_driver_present(driver_dir, browser: Browser):
 
-    dir_files = os.listdir(driver_download_dir)
+    dir_files = os.listdir(driver_dir)
 
     for file in dir_files:
         if re.search(_driver_name_regex(browser), file):
@@ -56,7 +57,7 @@ def _fix_architecture_info(info: tuple):
 
 
 def _download_driver(
-    driver_download_dir: str | os.PathLike,
+    driver_dir: str | os.PathLike,
     browser: Browser,
 ):
 
@@ -111,7 +112,7 @@ def _download_driver(
 
     if driver_urls[platform_info]["is_zip"]:
         # Download the zip file
-        zip_path = os.path.join(driver_download_dir, filename)
+        zip_path = os.path.join(driver_dir, filename)
         with open(zip_path, 'wb') as file:
             file.write(response.content)
 
@@ -122,18 +123,18 @@ def _download_driver(
             files = zip_ref.namelist()
             for file in files:
                 if re.search(_driver_name_regex(browser), file):
-                    driver_path = os.path.join(driver_download_dir, file)
-                    zip_ref.extract(member=file, path=driver_download_dir)
+                    driver_path = os.path.join(driver_dir, file)
+                    zip_ref.extract(member=file, path=driver_dir)
 
                     extracted_filename = os.path.basename(file)
 
                     if file != extracted_filename:
-                        src_path = os.path.join(driver_download_dir, file)
-                        dst_path = os.path.join(driver_download_dir, extracted_filename)
+                        src_path = os.path.join(driver_dir, file)
+                        dst_path = os.path.join(driver_dir, extracted_filename)
                         os.rename(src_path, dst_path)
 
                         first_dir = Path(file).parts[0]
-                        shutil.rmtree(os.path.join(driver_download_dir, first_dir))
+                        shutil.rmtree(os.path.join(driver_dir, first_dir))
                     break
 
         assert driver_path is not None, "no matching .exe file found in downloaded zip file"
@@ -146,11 +147,11 @@ def _download_driver(
             " of the driver. Please check.")
 
 
-def _verify_driver(driver_download_dir: str | os.PathLike, browser: Browser):
+def _verify_driver(driver_dir: str | os.PathLike, browser: Browser):
 
-    if not _is_driver_present(driver_download_dir, browser):
+    if not _is_driver_present(driver_dir, browser):
         print('Driver not present. Downloading...')
-        _download_driver(driver_download_dir, browser)
+        _download_driver(driver_dir, browser)
 
 
 def init_driver(
@@ -159,15 +160,25 @@ def init_driver(
     user_data_dir: str = None,
     download_dir: str = None,
     headless: bool = False,
+    driver_dir: str = None,
 ) -> webdriver:
+    """
+    Initialize a webdriver for the specified browser.
+
+
+    """
+
+    if driver_download_dir:
+        warn("FutureWarning: Use of driver_download_dir is deprecated. Use driver_dir instead.")
+        driver_dir = driver_download_dir
 
     driver_path = None
     driver = None
     options = None
     service = None
 
-    if driver_download_dir is None:
-        driver_download_dir = os.getcwd()
+    if driver_dir is None:
+        driver_dir = os.getcwd()
 
     # safeguard
     match browser:
@@ -175,13 +186,13 @@ def init_driver(
             raise NotImplementedError("Service for Edge browser is not implemented yet.")
 
     # download driver if not already downloaded
-    _verify_driver(driver_download_dir, browser)
+    _verify_driver(driver_dir, browser)
 
     # handling data_path
-    files = os.listdir(driver_download_dir)
+    files = os.listdir(driver_dir)
     for file in files:
         if re.search(_driver_name_regex(browser), file):
-            driver_path = os.path.join(driver_download_dir, file)
+            driver_path = os.path.join(driver_dir, file)
             break
 
     assert driver_path is not None, "No driver executable found."
@@ -267,7 +278,6 @@ def init_driver(
 
     return driver
 
-# TODO: to be completed
 def get_profile_path(browser: Browser) -> str:
     "returns the path to the profile"
 
