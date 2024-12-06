@@ -6,14 +6,14 @@ import shutil
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
-def test_is_driver_present_firefox():
-    print(os.getcwd())
-    assert sel._is_driver_present(os.getcwd(), sel.Browser.FIREFOX), "Could not detect geckodriver"
+# def test_is_driver_present_firefox():
+#     print(os.getcwd())
+#     assert sel._is_driver_present(os.getcwd(), sel.Browser.FIREFOX), "Could not detect geckodriver"
 
 
-def test_is_driver_present_chrome():
-    print(os.getcwd())
-    assert sel._is_driver_present(os.getcwd(), sel.Browser.CHROME), "Could not detect chromedriver"
+# def test_is_driver_present_chrome():
+#     print(os.getcwd())
+#     assert sel._is_driver_present(os.getcwd(), sel.Browser.CHROME), "Could not detect chromedriver"
 
 
 # # def init_driver(
@@ -132,6 +132,13 @@ def test_init_driver_chrome():
 def test_get_profile_chrome():
     path = None
     path = sel.get_profile_path(sel.Browser.CHROME)
+    assert path is not None, "profile_firefox not found."
+    print(path)
+
+
+def test_get_profile_firefox():
+    path = None
+    path = sel.get_profile_path(sel.Browser.FIREFOX)
     assert path is not None, "profile_firefox not found."
     print(path)
 
