@@ -169,33 +169,35 @@ def init_driver(
     """
 
     if driver_download_dir:
-        warn("FutureWarning: Use of driver_download_dir is deprecated. Use driver_dir instead.")
-        driver_dir = driver_download_dir
+        warn("FutureWarning: Use of driver_download_dir is deprecated. Selenium handles it internally after version ^4")
+    if driver_dir:
+        warn("FutureWarning: Use of driver_dir is deprecated. Selenium handles it internally after version ^4")
+        # driver_dir = driver_download_dir
 
-    driver_path = None
+    # driver_path = None
     driver = None
     options = None
     service = None
 
-    if driver_dir is None:
-        driver_dir = os.getcwd()
+    # if driver_dir is None:
+    #     driver_dir = os.getcwd()
 
-    # safeguard
-    match browser:
-        case Browser.EDGE:
-            raise NotImplementedError("Service for Edge browser is not implemented yet.")
+    # # safeguard
+    # match browser:
+    #     case Browser.EDGE:
+    #         raise NotImplementedError("Service for Edge browser is not implemented yet.")
 
     # download driver if not already downloaded
-    _verify_driver(driver_dir, browser)
+    # _verify_driver(driver_dir, browser)
 
-    # handling data_path
-    files = os.listdir(driver_dir)
-    for file in files:
-        if re.search(_driver_name_regex(browser), file):
-            driver_path = os.path.join(driver_dir, file)
-            break
+    # # handling data_path
+    # files = os.listdir(driver_dir)
+    # for file in files:
+    #     if re.search(_driver_name_regex(browser), file):
+    #         driver_path = os.path.join(driver_dir, file)
+    #         break
 
-    assert driver_path is not None, "No driver executable found."
+    # assert driver_path is not None, "No driver executable found."
 
     # Setup Options
     match browser:
@@ -250,12 +252,14 @@ def init_driver(
         case Browser.FIREFOX:
             from selenium.webdriver.firefox.service import Service
 
-            service = Service(executable_path=driver_path, log_output=os.devnull)
+            # service = Service(executable_path=driver_path, log_output=os.devnull)
+            service = Service(log_output=os.devnull)
 
         case Browser.CHROME:
             from selenium.webdriver.chrome.service import Service
 
-            service = Service(executable_path=driver_path, log_output=os.devnull)
+            # service = Service(executable_path=driver_path, log_output=os.devnull)
+            service = Service(log_output=os.devnull)
 
     assert options is not None, "Options are not found."
     assert service is not None, "Service is not found."
