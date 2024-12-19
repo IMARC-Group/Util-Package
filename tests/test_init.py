@@ -98,11 +98,12 @@ def test_style_excel_valid_sheet():
     finally:
         os.remove("download_test/workbook.xlsx")
 
-def test_fill_template():
+def test_fill_template_key_error():
     with pytest.raises(KeyError):
         util.fill_template(
             "tests/sample_template.md",
             verbose=True,
+            data={},
         )
 
 def test_fill_template_html():
@@ -110,7 +111,7 @@ def test_fill_template_html():
         "tests/sample_template.md",
         verbose=True,
         output_format="html",
-        sub_heading="Hello, World!"
+        data={"sub_heading": "Hello, World!"}
     )
     assert "<h2>Hello, World!</h2>" == output
 
@@ -120,6 +121,6 @@ def test_fill_template_plain():
         "tests/sample_template.md",
         verbose=True,
         output_format="plain",
-        sub_heading="Hello, World!"
+        data={"sub_heading": "Hello, World!"}
     )
     assert "## Hello, World!" == output

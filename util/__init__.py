@@ -411,10 +411,9 @@ def style_excel(
 
 def fill_template(
     path: str,
+    data: dict,
     output_format: TemplateOutputFormat | str = TemplateOutputFormat.HTML,
     verbose: bool = False,
-    *args,
-    **kwargs,
 ):
 
     if isinstance(output_format, str):
@@ -428,7 +427,7 @@ def fill_template(
 
     with open(path, 'r', encoding='utf-8') as f:
         template = f.read()
-        output_template = template.format(*args, **kwargs)
+        output_template = template.format(**data)
         if output_format == TemplateOutputFormat.HTML:
             output_template = markdown.markdown(output_template)
 
