@@ -1,6 +1,7 @@
 import util
 import pandas as pd
 import os
+import pytest
 
 
 def test_email_send_outlook():
@@ -96,3 +97,29 @@ def test_style_excel_valid_sheet():
         assert False, "Error occurred"
     finally:
         os.remove("download_test/workbook.xlsx")
+
+def test_fill_template():
+    with pytest.raises(KeyError):
+        util.fill_template(
+            "tests/sample_template.md",
+            verbose=True,
+        )
+
+def test_fill_template_html():
+    output = util.fill_template(
+        "tests/sample_template.md",
+        verbose=True,
+        output_format="html",
+        sub_heading="Hello, World!"
+    )
+    assert "<h2>Hello, World!</h2>" == output
+
+
+def test_fill_template_plain():
+    output = util.fill_template(
+        "tests/sample_template.md",
+        verbose=True,
+        output_format="plain",
+        sub_heading="Hello, World!"
+    )
+    assert "## Hello, World!" == output

@@ -22,6 +22,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font, Side, Border
 import win32com.client as win32
+import markdown
 
 
 # pylint: disable=R0913
@@ -39,6 +40,16 @@ class EmailMode(Enum):
     """Enum for email modes."""
     OUTLOOK="outlook"
     API="api"
+
+
+class TemplateFormat(Enum):
+    MD="md"
+    PLAIN="plain"
+
+
+class TemplateOutputFormat(Enum):
+    PLAIN="plain"
+    HTML="html"
 
 
 def _outlook_mailing(
@@ -397,3 +408,28 @@ def style_excel(
             input_worksheet.column_dimensions[column_letter].width = adjusted_width
 
     workbook.save(path)
+
+def fill_template(
+    path: str,
+    output_format: TemplateOutputFormat | str = TemplateOutputFormat.HTML,
+    verbose: bool = False,
+    *args,
+    **kwargs,
+):
+
+    if isinstance(output_format, str):
+        output_format = TemplateOutputFormat(output_format)
+    assert isinstance(output_format, TemplateOutputFormat), "Invalid output format provided."
+
+    if verbose: print(path)
+
+    if not os.path.exists(path):
+        raise FileNotFoundError("No template file present.")
+
+    with open(path, 'r', encoding='utf-8') as f:
+        template = f.read()
+        output_template = template.format(*args, **kwargs)
+        if output_format == TemplateOutputFormat.HTML:
+            output_template = markdown.markdown(output_template)
+
+        return output_template
