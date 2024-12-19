@@ -7,6 +7,7 @@ of different projects within the organization.
 """
 
 import os
+import ssl
 import time
 import json
 import smtplib
@@ -141,7 +142,13 @@ def _api_mailing(
             f'filename="{os.path.basename(file_path)}"'
         msg.attach(part)
 
-    server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+    if smtp_port == 587:
+        context = ssl.create_default_context()
+        server = smtplib.SMTP(smtp_host, smtp_port)
+        server.starttls(context=context)
+    else:
+        server = smtplib.SMTP_SSL(smtp_host, smtp_port)
+
     server.ehlo()
 
     if smtp_api_key:
