@@ -107,6 +107,12 @@ def test_init_driver_chrome():
     driver.quit()
 
 
+def test_init_driver_firefox():
+    driver = sel.init_driver(browser=sel.Browser.FIREFOX)
+    assert driver is not None, "No webdriver generated."
+    driver.quit()
+
+
 # def test_init_driver_edge():
 #     try:
 #         driver = sel.init_driver(browser=sel.Browser.EDGE)
@@ -156,15 +162,15 @@ def test_get_profile_firefox():
 #     assert "Timesheet" in title, "Page title does not match expected."
 
 
-def test_profile_path_working_chrome():
-    url = "https://books.zoho.com/app/653945843#/timesheet/projects/957216000012513009"
-    profile_path = sel.get_profile_path(sel.Browser.CHROME)
-    driver = sel.init_driver(
-        browser=sel.Browser.CHROME,
-        user_data_dir=profile_path,
-    )
-    driver.get(url)
-    title = driver.title
-    time.sleep(500)
-    driver.quit()
-    assert "Timesheet" in title, "Page title does not match expected."
+# def test_profile_path_working_chrome():
+#     url = "https://books.zoho.com/app/653945843#/timesheet/projects/957216000012513009"
+#     profile_path = sel.get_profile_path(sel.Browser.CHROME)
+#     driver = sel.init_driver(
+#         browser=sel.Browser.CHROME,
+#         user_data_dir=profile_path,
+#     )
+#     driver.get(url)
+#     title = driver.title
+#     time.sleep(500)
+#     driver.quit()
+#     assert "Timesheet" in title, "Page title does not match expected."

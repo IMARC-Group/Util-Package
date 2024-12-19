@@ -4,3 +4,4 @@ openpyxl
 html5lib
 lxml
 pywin32
+markdown
