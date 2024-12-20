@@ -122,9 +122,11 @@ def _api_mailing(
 
     if cc:
         msg['Cc'] = COMMASPACE.join(cc)
+        recipients.extend(cc)
 
     if bcc:
         msg['Bcc'] = COMMASPACE.join(bcc)
+        recipients.extend(bcc)
 
     msg['Subject'] = str(subject)
 
