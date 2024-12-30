@@ -420,10 +420,12 @@ def style_excel(
 
 def fill_template(
     path: str,
-    data: dict,
+    data: dict = None,
     output_format: TemplateOutputFormat | str = TemplateOutputFormat.HTML,
     verbose: bool = False,
 ):
+    if not data:
+        data = {}
 
     if isinstance(output_format, str):
         output_format = TemplateOutputFormat(output_format)
