@@ -116,6 +116,15 @@ def test_fill_template_html():
     assert "<h2>Hello, World!</h2>" == output
 
 
+def test_fill_template_optional_data():
+    output = util.fill_template(
+        "tests/no_variable_tempalte.md",
+        verbose=True,
+        output_format="html",
+    )
+    assert "<h2>sub_heading</h2>" == output
+
+
 def test_fill_template_plain():
     output = util.fill_template(
         "tests/sample_template.md",
